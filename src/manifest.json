@@ -1,7 +1,7 @@
 {
-  "name": "uni-vitesse",
+  "name": "约",
   "appid": "",
-  "description": "uniapp + vitesse = strong !!!",
+  "description": "when2meet-style scheduling, no login",
   "versionName": "1.0.0",
   "versionCode": "100",
   "transformPx": false,
@@ -51,7 +51,12 @@
     }
   },
   "h5": {
-    "darkmode": true
+    "darkmode": true,
+    "publicPath": "./",
+    "router": {
+      "mode": "hash",
+      "base": "./"
+    }
   },
   /* 快应用特有相关 */
   "quickapp": {},

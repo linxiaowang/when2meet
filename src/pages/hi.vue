@@ -3,6 +3,18 @@ import { useCounterStore } from '~/stores/counter'
 
 const props = defineProps<{ name: string }>()
 
+definePage({
+  style: {
+    enableShareAppMessage: true,
+  },
+})
+
+onShareAppMessage(() => ({
+  title: props.name || '约',
+  path: props.name ? `/pages/hi?name=${props.name}` : '/pages/hi',
+  imageUrl: '/static/logo.png',
+}))
+
 const { time } = storeToRefs(useCounterStore())
 
 const timeAge = useTimeAgo(time)

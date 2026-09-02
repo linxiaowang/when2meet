@@ -12,7 +12,7 @@
       <div i-carbon-sun dark:i-carbon-moon />
     </div>
 
-    <div icon-btn title="GitHub" @click="router.push('https://github.com/Ares-Chang/uni-vitesse')">
+    <div icon-btn title="GitHub" @click="router.push('https://github.com/linxiaowang/when2meet')">
       <div i-carbon-logo-github />
     </div>
   </div>
