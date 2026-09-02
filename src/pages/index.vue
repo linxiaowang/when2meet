@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { inputValue } from '~/utils/input'
 import { createEvent } from '~/utils/store'
 import { dayChipLabel, HOUR_OPTIONS, upcomingDates } from '~/utils/time'
 
@@ -16,6 +17,10 @@ const startHour = ref(9)
 const endHour = ref(21)
 const slotMinutes = ref<30 | 60>(60)
 const submitting = ref(false)
+
+function onTitleInput(e: unknown) {
+  title.value = inputValue(e)
+}
 
 function toggleDate(iso: string) {
   const i = selectedDates.value.indexOf(iso)
@@ -74,10 +79,11 @@ async function onCreate() {
 
     <label mt-5 block text-sm font-medium>标题</label>
     <input
-      v-model="title"
       class="field"
+      :value="title"
       placeholder="未命名"
       maxlength="40"
+      @input="onTitleInput"
     >
 
     <div mt-5 text-sm font-medium>

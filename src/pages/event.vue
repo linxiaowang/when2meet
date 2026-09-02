@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { YueEvent } from '~/utils/store'
+import { inputValue } from '~/utils/input'
 import { buildShareUrl, getEvent, saveParticipant } from '~/utils/store'
 import { dayHeaderLabel, slotKey, slotTimes } from '~/utils/time'
 
@@ -20,6 +21,8 @@ const mySlots = ref<string[]>([])
 const saving = ref(false)
 const dirty = ref(false)
 const selectedKey = ref('')
+
+const shareUrl = computed(() => eventId.value ? buildShareUrl(eventId.value) : '')
 
 const times = computed(() => {
   if (!event.value)
@@ -114,6 +117,10 @@ function applyMySlotsFromEvent() {
   const found = event.value.participants.find(p => p.name === me)
   mySlots.value = found ? [...found.slots] : []
   dirty.value = false
+}
+
+function onNameInput(e: unknown) {
+  displayName.value = inputValue(e)
 }
 
 function persistName() {
@@ -221,13 +228,17 @@ onLoad((query) => {
           刷新
         </button>
       </div>
+      <p v-if="shareUrl" class="share-url">
+        {{ shareUrl }}
+      </p>
 
       <label mt-4 block text-sm font-medium>你的显示名（不用登录）</label>
       <input
-        v-model="displayName"
         class="field"
+        :value="displayName"
         placeholder="例如：小王"
         maxlength="20"
+        @input="onNameInput"
         @blur="persistName"
       >
 
