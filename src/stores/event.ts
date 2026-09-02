@@ -138,9 +138,44 @@ async function putRemote(event: YueEvent) {
     throw new Error(`put ${res.statusCode}`)
 }
 
+function readStorage<T>(key: string, fallback: T): T {
+  try {
+    if (typeof uni !== 'undefined' && typeof uni.getStorageSync === 'function') {
+      const raw = uni.getStorageSync(key)
+      if (raw === '' || raw == null)
+        return fallback
+      return raw as T
+    }
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(key)
+      return raw ? JSON.parse(raw) as T : fallback
+    }
+  }
+  catch {}
+  return fallback
+}
+
+function writeStorage(key: string, value: unknown) {
+  try {
+    if (typeof uni !== 'undefined' && typeof uni.setStorageSync === 'function') {
+      uni.setStorageSync(key, value)
+      return
+    }
+    if (typeof localStorage !== 'undefined')
+      localStorage.setItem(key, JSON.stringify(value))
+  }
+  catch {}
+}
+
+function persistRef<T>(key: string, fallback: T) {
+  const state = ref(readStorage(key, fallback))
+  watch(state, value => writeStorage(key, value), { deep: true })
+  return state
+}
+
 export const useEventStore = defineStore('yue', () => {
-  const events = useStorage<Record<string, YueEvent>>('yue-events', {})
-  const selfId = useStorage('yue-self-id', createId())
+  const events = persistRef<Record<string, YueEvent>>('yue-events', {})
+  const selfId = persistRef('yue-self-id', createId())
 
   function cache(event: YueEvent) {
     events.value = { ...events.value, [event.id]: event }
