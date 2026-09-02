@@ -15,7 +15,9 @@ const emit = defineEmits<{
 
 const times = computed(() => eventTimes(props.event))
 const counts = computed(() => countBySlot(props.event))
-const maxCount = computed(() => Math.max(1, props.event.responses.length))
+const maxCount = computed(() =>
+  Math.max(1, props.event.responses.filter(item => item.slots.length > 0).length),
+)
 
 function keyOf(date: string, time: string) {
   return slotKey(date, time)

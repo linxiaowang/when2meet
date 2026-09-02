@@ -38,10 +38,13 @@ const preview = computed<YueEvent | null>(() => {
 const peopleCount = computed(() => event.value?.responses.length || 0)
 
 const overlap = computed(() => {
-  if (!preview.value || preview.value.responses.length < 2)
+  if (!preview.value)
     return []
-  const counts = countBySlot(preview.value)
-  const need = preview.value.responses.length
+  const filled = preview.value.responses.filter(item => item.slots.length > 0)
+  if (filled.length < 2)
+    return []
+  const counts = countBySlot({ responses: filled })
+  const need = filled.length
   return Object.keys(counts)
     .filter(key => counts[key] === need)
     .sort()
@@ -107,6 +110,11 @@ async function load(opts?: { silent?: boolean }) {
   }
 }
 
+function onNameInput(e: { detail?: { value?: string } }) {
+  if (typeof e?.detail?.value === 'string')
+    name.value = e.detail.value
+}
+
 function onNameBlur() {
   const who = name.value.trim()
   name.value = who
@@ -120,11 +128,6 @@ function onTapCell(key: string) {
   if (typeof key !== 'string')
     return
   activeKey.value = key
-  const who = name.value.trim()
-  if (!who) {
-    uni.showToast({ title: '先填一个名字', icon: 'none' })
-    return
-  }
   const next = new Set(mySlots.value)
   if (next.has(key))
     next.delete(key)
@@ -221,6 +224,8 @@ function goCreate() {
           class="box-border w-full border border-gray-200 rounded-lg bg-white px-3 py-2 text-base"
           placeholder="怎么称呼你"
           maxlength="20"
+          confirm-type="done"
+          @input="onNameInput"
           @blur="onNameBlur"
         >
       </view>
