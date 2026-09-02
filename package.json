@@ -60,6 +60,7 @@
     "@dcloudio/uni-mp-weixin": "3.0.0-5000620260331001",
     "@dcloudio/uni-mp-xhs": "3.0.0-5000620260331001",
     "@dcloudio/uni-quickapp-webview": "3.0.0-5000620260331001",
+    "@netlify/blobs": "^10.7.13",
     "@uni-helper/uni-use": "^0.19.17",
     "@vueuse/core": "^13.8.0",
     "pinia": "^2.0.36",

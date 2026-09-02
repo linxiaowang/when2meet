@@ -4,7 +4,17 @@ command = "npx pnpm i --store=node_modules/.pnpm-store && npx pnpm run build:h5"
 
 [build.environment]
 NPM_FLAGS = "--version"
-NODE_VERSION = "16"
+NODE_VERSION = "22"
+
+[functions]
+directory = "netlify/functions"
+node_bundler = "esbuild"
+
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/api/:splat"
+status = 200
+force = true
 
 [[redirects]]
 from = "/*"

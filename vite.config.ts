@@ -9,6 +9,7 @@ import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import UniPolyfill from 'vite-plugin-uni-polyfill'
 import VueDevTools from 'vite-plugin-vue-devtools'
+import { yueApiPlugin } from './server/vite-plugin'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,16 +18,16 @@ export default defineConfig({
       '~/': `${resolve(__dirname, 'src')}/`,
     },
   },
+  server: {
+    host: true,
+  },
   plugins: [
+    yueApiPlugin(),
     /**
      * vite-plugin-uni-pages
      * @see https://uni-helper.js.org/vite-plugin-uni-pages
      */
-    UniPages({
-      subPackages: [
-        'src/pages-sub',
-      ],
-    }),
+    UniPages(),
 
     /**
      * vite-plugin-uni-layouts

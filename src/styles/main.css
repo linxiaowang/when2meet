@@ -2,6 +2,16 @@ page {
   box-sizing: border-box;
 }
 
+button {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button::after {
+  border: none;
+}
+
 .app {
   min-height: 100vh;
   color: #000000;
