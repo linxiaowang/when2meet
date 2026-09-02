@@ -22,11 +22,7 @@ export default defineConfig({
      * vite-plugin-uni-pages
      * @see https://uni-helper.js.org/vite-plugin-uni-pages
      */
-    UniPages({
-      subPackages: [
-        'src/pages-sub',
-      ],
-    }),
+    UniPages(),
 
     /**
      * vite-plugin-uni-layouts
