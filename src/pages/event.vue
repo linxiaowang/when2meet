@@ -16,7 +16,7 @@ definePage({
 const eventId = ref('')
 const event = ref<YueEvent | null>(null)
 const name = ref('')
-const mySlots = ref<Set<string>>(new Set())
+const mySlots = ref<string[]>([])
 const activeKey = ref('')
 const loading = ref(true)
 const saving = ref(false)
@@ -96,7 +96,7 @@ async function load(opts?: { silent?: boolean }) {
     if (who) {
       const mine = data.responses.find(item => item.name === who)
       if (mine && !dirty.value)
-        mySlots.value = new Set(mine.slots)
+        mySlots.value = [...mine.slots]
     }
   }
   catch (err) {
@@ -113,10 +113,12 @@ function onNameBlur() {
   if (!event.value || dirty.value)
     return
   const mine = event.value.responses.find(item => item.name === who)
-  mySlots.value = new Set(mine?.slots || [])
+  mySlots.value = [...(mine?.slots || [])]
 }
 
 function onTapCell(key: string) {
+  if (typeof key !== 'string')
+    return
   activeKey.value = key
   const who = name.value.trim()
   if (!who) {
@@ -128,7 +130,7 @@ function onTapCell(key: string) {
     next.delete(key)
   else
     next.add(key)
-  mySlots.value = next
+  mySlots.value = [...next]
   dirty.value = true
   savedHint.value = ''
 }
@@ -233,18 +235,7 @@ function goCreate() {
         </text>
       </view>
 
-      <view class="mb-1 text-sm text-gray-600">
-        点格子：绿得越深人越多。描边是你选的。
-      </view>
-
-      <SlotGrid
-        :event="preview || event"
-        :mine="mySlots"
-        :active-key="activeKey"
-        @tap="onTapCell"
-      />
-
-      <view class="mt-2 min-h-10 text-sm text-gray-700">
+      <view class="mb-2 min-h-10 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700">
         <text v-if="activeKey">
           {{ activeLabel }}：
           {{ activeNames.length ? activeNames.join('、') : '还没人' }}
@@ -253,6 +244,17 @@ function goCreate() {
           点一格看谁有空
         </text>
       </view>
+
+      <view class="mb-1 text-sm text-gray-600">
+        点格子：绿得越深人越多。描边是你选的。
+      </view>
+
+      <SlotGrid
+        :event="preview || event"
+        :mine="mySlots"
+        :active-key="activeKey"
+        @cell-tap="onTapCell"
+      />
 
       <view v-if="event.responses.length" class="mt-2 text-sm text-gray-500">
         已填：{{ event.responses.map(item => item.name).join('、') }}

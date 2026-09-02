@@ -5,12 +5,12 @@ import { weekdayZh } from '~/shared/time'
 
 const props = defineProps<{
   event: YueEvent
-  mine: Set<string>
+  mine: string[]
   activeKey: string
 }>()
 
 const emit = defineEmits<{
-  tap: [key: string]
+  cellTap: [key: string]
 }>()
 
 const times = computed(() => eventTimes(props.event))
@@ -22,7 +22,23 @@ function keyOf(date: string, time: string) {
 }
 
 function bg(date: string, time: string) {
-  return heatmapColor(counts.value[keyOf(date, time)] || 0, maxCount.value)
+  const key = keyOf(date, time)
+  const count = counts.value[key] || 0
+  if (count <= 0)
+    return props.mine.includes(key) ? '#99f6e4' : '#f4f4f5'
+  return heatmapColor(count, maxCount.value)
+}
+
+function isMine(date: string, time: string) {
+  return props.mine.includes(keyOf(date, time))
+}
+
+function isActive(date: string, time: string) {
+  return props.activeKey === keyOf(date, time)
+}
+
+function onCellTap(date: string, time: string) {
+  emit('cellTap', keyOf(date, time))
 }
 
 function namesHint(date: string, time: string) {
@@ -58,13 +74,13 @@ function namesHint(date: string, time: string) {
         <view
           v-for="time in times"
           :key="`${date}-${time}`"
-          class="mx-0.5 mb-0.5 h-9 flex items-center justify-center rounded-sm text-[10px]"
-          :class="mine.has(keyOf(date, time)) ? 'ring-2 ring-teal-800' : 'ring-1 ring-gray-200'"
+          class="mx-0.5 mb-0.5 h-9 flex cursor-pointer items-center justify-center rounded-sm text-[10px]"
+          :class="isMine(date, time) ? 'ring-2 ring-teal-800' : 'ring-1 ring-gray-200'"
           :style="{
             background: bg(date, time),
-            outline: activeKey === keyOf(date, time) ? '2px solid #134e4a' : 'none',
+            outline: isActive(date, time) ? '2px solid #134e4a' : 'none',
           }"
-          @tap="emit('tap', keyOf(date, time))"
+          @tap="onCellTap(date, time)"
         >
           <text class="text-teal-950/80">
             {{ namesHint(date, time) }}

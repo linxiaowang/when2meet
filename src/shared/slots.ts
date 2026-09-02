@@ -15,6 +15,8 @@ export function slotKey(date: string, time: string): string {
 }
 
 export function parseSlotKey(key: string): { date: string, time: string } | null {
+  if (typeof key !== 'string')
+    return null
   const m = key.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/)
   if (!m)
     return null
