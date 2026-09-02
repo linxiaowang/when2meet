@@ -127,7 +127,11 @@ function persistName() {
   const me = displayName.value.trim()
   if (me)
     uni.setStorageSync(NAME_KEY, me)
-  applyMySlotsFromEvent()
+}
+
+function onNameFocus(e: unknown) {
+  const t = (e as { target?: { select?: () => void } }).target
+  t?.select?.()
 }
 
 async function load() {
@@ -239,6 +243,7 @@ onLoad((query) => {
         placeholder="例如：小王"
         maxlength="20"
         @input="onNameInput"
+        @focus="onNameFocus"
         @blur="persistName"
       >
 
