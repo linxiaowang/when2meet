@@ -42,7 +42,7 @@ async function create() {
       endHour: endHour.value,
       slotMinutes: 30,
     })
-    router.push(`${eventPath(event.id)}&t=${encodeURIComponent(event.title)}`)
+    router.push(`${eventPath(event.id)}&t=${event.title}`)
   }
   finally {
     creating.value = false
