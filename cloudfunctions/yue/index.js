@@ -17,7 +17,24 @@ function strip(doc) {
     endHour: doc.endHour,
     slotMinutes: doc.slotMinutes,
     participants: doc.participants || [],
+    creatorId: doc.creatorId,
   }
+}
+
+function redactEvent(doc, requesterOpenid) {
+  const event = strip(doc)
+  if (!event)
+    return null
+  const creatorId = event.creatorId
+  // Old events without creatorId: do not hide anyone.
+  if (!creatorId || requesterOpenid === creatorId)
+    return event
+  event.participants = (event.participants || []).map((p) => {
+    if (p && p.id === creatorId)
+      return { id: p.id, name: '', slots: p.slots || [] }
+    return p
+  })
+  return event
 }
 
 function createId() {
@@ -30,7 +47,7 @@ function wxOpenid() {
 }
 
 function ok(doc, openid) {
-  return { ok: true, event: strip(doc), openid }
+  return { ok: true, event: redactEvent(doc, openid), openid }
 }
 
 exports.main = async (event) => {
@@ -50,6 +67,7 @@ exports.main = async (event) => {
         endHour: Number(event.endHour) || 21,
         slotMinutes: Number(event.slotMinutes) || 30,
         participants: [],
+        creatorId: openid,
         createdAt: Date.now(),
       }
       await col.add({ data: row })

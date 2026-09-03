@@ -40,7 +40,21 @@ const mine = computed(() => {
   return event.value.participants.find(p => p.id === store.selfId)?.slots || []
 })
 const people = computed(() => event.value?.participants.filter(p => p.slots.length) || [])
-const peopleLine = computed(() => people.value.length ? people.value.map(p => p.name).join('、') : '还没有人')
+const peopleLine = computed(() => {
+  const filled = people.value
+  if (!filled.length)
+    return '还没有人'
+  const creatorId = event.value?.creatorId
+  const selfId = store.selfId
+  const isCreator = Boolean(creatorId && selfId && selfId === creatorId)
+  // Old events without creatorId: show everyone. Creator sees all names.
+  if (isCreator || !creatorId)
+    return filled.map(p => p.name).join('、')
+  const others = filled.filter(p => p.id !== creatorId && p.name)
+  if (others.length)
+    return others.map(p => p.name).join('、')
+  return `${filled.length} 人`
+})
 const best = computed(() => {
   let top = 0
   let label = ''
@@ -70,13 +84,17 @@ function measureGrid() {
 
 measureGrid()
 
+function prefillOwnName() {
+  const me = event.value?.participants.find(p => p.id === store.selfId)
+  if (me?.name && me.name !== '匿名' && !name.value)
+    name.value = me.name
+}
+
 async function refresh() {
   if (!props.id)
     return
   event.value = await store.loadEvent(props.id)
-  const me = event.value?.participants.find(p => p.id === store.selfId)
-  if (me?.name && me.name !== '匿名' && !name.value)
-    name.value = me.name
+  prefillOwnName()
   measureGrid()
 }
 
@@ -123,6 +141,7 @@ onLoad(async (query) => {
     await store.loadEvent(String(query.id)).then((e) => { event.value = e })
   else
     await refresh()
+  prefillOwnName()
   loading.value = false
   measureGrid()
 })

@@ -15,6 +15,7 @@ export interface YueEvent {
   endHour: number
   slotMinutes: number
   participants: Participant[]
+  creatorId?: string
 }
 
 export function createId() {
