@@ -18,6 +18,7 @@ declare module 'vue' {
     TheFooter: typeof import('./components/TheFooter.vue')['default']
     TheInput: typeof import('./components/TheInput.vue')['default']
     TheLogo: typeof import('./components/TheLogo.vue')['default']
+    TimeGrid: typeof import('./components/TimeGrid.vue')['default']
   }
 }
 
@@ -29,4 +30,5 @@ declare global {
   const TheFooter: typeof import('./components/TheFooter.vue')['default']
   const TheInput: typeof import('./components/TheInput.vue')['default']
   const TheLogo: typeof import('./components/TheLogo.vue')['default']
+  const TimeGrid: typeof import('./components/TimeGrid.vue')['default']
 }

@@ -3,7 +3,8 @@ import { defineUniPages } from '@uni-helper/vite-plugin-uni-pages'
 export default defineUniPages({
   pages: [],
   globalStyle: {
-    'navigationBarTitleText': 'uni-vitesse',
+    'navigationBarTitleText': '约',
+    'navigationStyle': 'custom',
     'navigationBarBackgroundColor': '@navBgColor',
     'navigationBarTextStyle': '@navTxtStyle',
     'backgroundColor': '@bgColor',

@@ -5,15 +5,23 @@
     }"
   >
     <main
-      p="x-4 y-10"
-      font-sans text="center"
+      class="shell"
+      font-sans
       color="gray-700 dark:gray-200"
     >
       <slot />
-      <TheFooter />
-      <div mx-auto mt-4 text-center text-sm opacity-50>
-        [Home Layout]
-      </div>
     </main>
   </div>
 </template>
+
+<style scoped>
+.app {
+  min-height: 100%;
+  min-height: 100dvh;
+}
+.shell {
+  box-sizing: border-box;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(32px + env(safe-area-inset-bottom, 0px));
+  text-align: left;
+}
+</style>
