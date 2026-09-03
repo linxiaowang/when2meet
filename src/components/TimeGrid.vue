@@ -8,10 +8,19 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  toggle: [key: string]
+  paint: [slots: string[]]
 }>()
 
-const mineSet = computed(() => new Set(props.mine))
+const draft = ref(new Set(props.mine))
+const painting = ref(false)
+const paintOn = ref(true)
+
+watch(() => props.mine, (mine) => {
+  if (!painting.value)
+    draft.value = new Set(mine)
+})
+
+const mineSet = computed(() => draft.value)
 
 function weekday(iso: string) {
   return '日一二三四五六'[new Date(`${iso}T00:00:00`).getDay()]
@@ -28,37 +37,116 @@ function heat(count: number) {
   return `rgba(13, 148, 136, ${0.22 + t * 0.72})`
 }
 
-function onTap(day: string, time: string) {
-  emit('toggle', `${day}T${time}`)
+function applyKey(key: string) {
+  if (!key)
+    return
+  const next = new Set(draft.value)
+  if (paintOn.value)
+    next.add(key)
+  else
+    next.delete(key)
+  draft.value = next
 }
+
+function startPaint(key: string) {
+  if (!key || painting.value)
+    return
+  painting.value = true
+  paintOn.value = !draft.value.has(key)
+  applyKey(key)
+}
+
+function slotFromPoint(x: number, y: number) {
+  if (typeof document === 'undefined')
+    return ''
+  const el = document.elementFromPoint(x, y) as HTMLElement | null
+  const cell = el?.closest?.('[data-slot]') as HTMLElement | null
+  return cell?.dataset?.slot || ''
+}
+
+function pointOf(e: TouchEvent | MouseEvent) {
+  const t = 'touches' in e ? e.touches[0] || e.changedTouches?.[0] : e
+  return t ? { x: t.clientX, y: t.clientY } : null
+}
+
+function onGridStart(e: TouchEvent | MouseEvent) {
+  const pt = pointOf(e)
+  if (!pt)
+    return
+  const key = slotFromPoint(pt.x, pt.y)
+  if (!key)
+    return
+  e.preventDefault()
+  startPaint(key)
+}
+
+function onGridMove(e: TouchEvent | MouseEvent) {
+  if (!painting.value)
+    return
+  e.preventDefault()
+  const pt = pointOf(e)
+  if (!pt)
+    return
+  applyKey(slotFromPoint(pt.x, pt.y))
+}
+
+function endPaint() {
+  if (!painting.value)
+    return
+  painting.value = false
+  emit('paint', [...draft.value])
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined')
+    return
+  window.addEventListener('mouseup', endPaint)
+  window.addEventListener('touchend', endPaint)
+  window.addEventListener('touchcancel', endPaint)
+})
+
+onUnmounted(() => {
+  if (typeof window === 'undefined')
+    return
+  window.removeEventListener('mouseup', endPaint)
+  window.removeEventListener('touchend', endPaint)
+  window.removeEventListener('touchcancel', endPaint)
+})
 </script>
 
 <template>
-  <div overflow-x-auto text-left style="touch-action: pan-x pan-y;">
+  <div
+    class="time-grid"
+    overflow-x-auto text-left
+    @mousedown="onGridStart"
+    @mousemove="onGridMove"
+    @touchstart="onGridStart"
+    @touchmove="onGridMove"
+  >
     <div min-w-max>
       <div flex>
-        <div w-16 shrink-0 />
+        <div class="time-lab" />
         <div
           v-for="day in days"
           :key="day"
-          w-16 shrink-0 px-1 py-2 text-center text-xs leading-tight op80
+          class="day-lab"
         >
           {{ shortDay(day) }}
         </div>
       </div>
-      <div v-for="time in times" :key="time" flex items-stretch py-0.5>
-        <div w-16 flex shrink-0 items-center justify-end pr-2 text-xs op70>
+      <div v-for="time in times" :key="time" flex items-stretch>
+        <div class="time-lab" op70>
           {{ time }}
         </div>
         <div
           v-for="day in days"
           :key="`${day}T${time}`"
-          m-0.5 h-14 w-16 center shrink-0 cursor-pointer select-none border="~ solid gray-200 dark:gray-700"
-          :class="mineSet.has(`${day}T${time}`) ? 'ring-2 ring-inset ring-teal-700' : ''"
-          :style="{ background: heat(counts[`${day}T${time}`] || 0), minWidth: '56px', minHeight: '52px', touchAction: 'manipulation' }"
-          @click="onTap(day, time)"
+          class="slot"
+          :data-slot="`${day}T${time}`"
+          :class="mineSet.has(`${day}T${time}`) ? 'is-mine' : ''"
+          :style="{ background: heat(counts[`${day}T${time}`] || 0) }"
         >
-          <span v-if="counts[`${day}T${time}`]" text-sm>
+          <span v-if="counts[`${day}T${time}`]">
             {{ counts[`${day}T${time}`] }}
           </span>
         </div>
@@ -66,3 +154,55 @@ function onTap(day: string, time: string) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.time-grid {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.time-lab,
+.day-lab {
+  width: 72px;
+  min-width: 72px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.time-lab {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-size: 12px;
+}
+.day-lab {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.2;
+  opacity: 0.8;
+}
+.slot {
+  width: 72px;
+  min-width: 72px;
+  height: 64px;
+  min-height: 64px;
+  margin: 3px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  touch-action: none;
+}
+.dark .slot {
+  border-color: #374151;
+}
+.slot.is-mine {
+  box-shadow: inset 0 0 0 3px #0f766e;
+}
+</style>

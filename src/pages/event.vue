@@ -65,15 +65,26 @@ async function refresh() {
     name.value = me.name
 }
 
-async function toggle(key: string) {
+async function paint(slots: string[]) {
   if (!event.value || !props.id)
     return
-  const next = mine.value.includes(key)
-    ? mine.value.filter(s => s !== key)
-    : [...mine.value, key]
   saving.value = true
   try {
-    event.value = await store.saveMine(props.id, name.value, next)
+    event.value = await store.saveMine(props.id, name.value, slots)
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+async function saveName() {
+  if (!props.id || !event.value)
+    return
+  if (!mine.value.length && !event.value.participants.some(p => p.id === store.selfId))
+    return
+  saving.value = true
+  try {
+    event.value = await store.saveMine(props.id, name.value, mine.value)
   }
   finally {
     saving.value = false
@@ -89,12 +100,8 @@ function copyLink() {
   })
 }
 
-watchDebounced(name, async (value) => {
-  if (!props.id || !event.value)
-    return
-  if (!mine.value.length && !event.value.participants.some(p => p.id === store.selfId))
-    return
-  event.value = await store.saveMine(props.id, value, mine.value)
+watchDebounced(name, async () => {
+  await saveName()
 }, { debounce: 600 })
 
 onLoad(async (query) => {
@@ -123,52 +130,115 @@ onUnload(() => clearInterval(timer))
 </script>
 
 <template>
-  <div>
-    <p text-3xl font-bold>
+  <div class="event">
+    <p class="brand">
       {{ title }}
     </p>
-    <p mt-1 text-sm italic op75>
-      点格子标记你有空。颜色越深，重叠的人越多。
+    <p class="lead">
+      按住格子滑动涂你有空的时间。颜色越深，重叠的人越多。
     </p>
 
-    <div mt-4>
-      <button m-3 btn text-sm @click="copyLink">
-        复制分享链接
+    <div class="toolbar">
+      <input
+        v-model="name"
+        class="name"
+        type="text"
+        placeholder="你的名字（可选）"
+        confirm-type="done"
+      >
+      <button class="act" :disabled="saving" @click="saveName">
+        {{ saving ? '保存中…' : '保存' }}
       </button>
-      <button m-3 btn text-sm @click="router.back()">
-        返回
+      <button class="act" @click="copyLink">
+        复制链接
       </button>
     </div>
 
-    <TheInput
-      v-model:value="name"
-      placeholder="你的名字（可选）"
-    />
-
-    <p v-if="loading" mt-6 text-sm op70>
+    <p v-if="loading" class="note">
       正在打开这个约…
     </p>
-    <p v-else-if="!event" mt-6 text-sm op70>
+    <p v-else-if="!event" class="note">
       没找到这个约。请让发起人重新发链接。
     </p>
-    <div v-else mt-5>
+    <div v-else class="body">
       <TimeGrid
         :days="days"
         :times="times"
         :counts="counts"
         :mine="mine"
         :max-count="maxCount"
-        @toggle="toggle"
+        @paint="paint"
       />
-      <p mt-3 text-sm op80>
+      <p class="note">
         已填：{{ people.length ? people.map(p => p.name).join('、') : '还没有人' }}
       </p>
-      <p text-sm op80>
+      <p class="note">
         重叠：{{ best }}
-      </p>
-      <p v-if="saving" mt-1 text-xs op50>
-        正在保存…
       </p>
     </div>
   </div>
 </template>
+
+<style scoped>
+.event {
+  text-align: left;
+}
+.brand {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+.lead {
+  margin: 8px 0 12px;
+  font-size: 14px;
+  opacity: 0.75;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 12px;
+  position: relative;
+  z-index: 1;
+}
+.name {
+  flex: 1 1 140px;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: 16px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+}
+.dark .name {
+  border-color: #4b5563;
+}
+.act {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #fff;
+  background: #0d9488;
+  border: 0;
+  border-radius: 6px;
+}
+.act:disabled {
+  opacity: 0.5;
+}
+.body {
+  position: relative;
+  z-index: 0;
+  padding-bottom: 24px;
+}
+.note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+</style>
