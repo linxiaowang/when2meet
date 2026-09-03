@@ -1,0 +1,12 @@
+{
+  "miniprogramRoot": "dist/dev/mp-weixin/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "setting": {
+    "es6": true,
+    "urlCheck": false
+  },
+  "appid": "wxd925fcd4b0ab406d",
+  "projectname": "yue",
+  "compileType": "miniprogram",
+  "srcMiniprogramRoot": "dist/dev/mp-weixin/"
+}

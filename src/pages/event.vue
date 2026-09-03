@@ -87,6 +87,9 @@ async function paint(slots: string[]) {
   try {
     event.value = await store.saveMine(props.id, name.value, slots)
   }
+  catch {
+    uni.showToast({ title: '没存上，请检查云开发', icon: 'none' })
+  }
   finally {
     saving.value = false
   }
@@ -100,6 +103,9 @@ async function saveName() {
   saving.value = true
   try {
     event.value = await store.saveMine(props.id, name.value, mine.value)
+  }
+  catch {
+    uni.showToast({ title: '没存上，请检查云开发', icon: 'none' })
   }
   finally {
     saving.value = false

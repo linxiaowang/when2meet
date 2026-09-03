@@ -68,6 +68,9 @@ async function create() {
     })
     router.push(`${eventPath(event.id)}&t=${event.title}`)
   }
+  catch {
+    uni.showToast({ title: '创建失败，约没有发出去', icon: 'none' })
+  }
   finally {
     creating.value = false
   }

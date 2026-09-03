@@ -64,6 +64,7 @@
   "mp-weixin": {
     "darkmode": true,
     "appid": "wxd925fcd4b0ab406d",
+    "cloud": true,
     "setting": {
       "urlCheck": false
     },
