@@ -6,7 +6,6 @@ import {
   eventDays,
   eventPath,
   eventTimes,
-  h5ShareUrl,
   slotCounts,
   useEventStore,
 } from '~/stores/event'
@@ -113,15 +112,6 @@ async function saveName() {
   }
 }
 
-function copyLink() {
-  if (!props.id)
-    return
-  uni.setClipboardData({
-    data: h5ShareUrl(props.id),
-    success: () => uni.showToast({ title: '链接已复制', icon: 'none' }),
-  })
-}
-
 watchDebounced(name, async () => {
   await saveName()
 }, { debounce: 600 })
@@ -191,11 +181,8 @@ onUnload(() => {
       </view>
 
       <view class="actions">
-        <button class="act" hover-class="act-hover" @click="saveName">
-          <text class="act-txt">{{ saving ? '保存中…' : '保存' }}</text>
-        </button>
-        <button class="act" hover-class="act-hover" @click="copyLink">
-          <text class="act-txt">复制</text>
+        <button class="act" hover-class="act-hover" open-type="share">
+          <text class="act-txt">分享</text>
         </button>
       </view>
 
