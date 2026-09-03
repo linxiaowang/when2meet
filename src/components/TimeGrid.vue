@@ -37,28 +37,28 @@ function onTap(day: string, time: string) {
   <div overflow-x-auto text-left>
     <div min-w-max>
       <div flex>
-        <div w-14 shrink-0 />
+        <div w-16 shrink-0 />
         <div
           v-for="day in days"
           :key="day"
-          w-11 shrink-0 px-0.5 text-center text-xs leading-tight op80
+          w-16 shrink-0 px-1 py-2 text-center text-xs leading-tight op80
         >
           {{ shortDay(day) }}
         </div>
       </div>
-      <div v-for="time in times" :key="time" flex items-stretch>
-        <div w-14 shrink-0 py-1 pr-1 text-right text-xs op70>
+      <div v-for="time in times" :key="time" flex items-stretch py-0.5>
+        <div w-16 flex shrink-0 items-center justify-end pr-2 text-xs op70>
           {{ time }}
         </div>
         <div
           v-for="day in days"
           :key="`${day}T${time}`"
-          h-8 w-11 center shrink-0 border="~ solid gray-200 dark:gray-700"
-          :class="mineSet.has(`${day}T${time}`) ? 'ring-1 ring-inset ring-teal-700' : ''"
-          :style="{ background: heat(counts[`${day}T${time}`] || 0) }"
+          m-0.5 h-14 w-16 center shrink-0 cursor-pointer select-none border="~ solid gray-200 dark:gray-700"
+          :class="mineSet.has(`${day}T${time}`) ? 'ring-2 ring-inset ring-teal-700' : ''"
+          :style="{ background: heat(counts[`${day}T${time}`] || 0), minWidth: '56px', minHeight: '52px' }"
           @click="onTap(day, time)"
         >
-          <span v-if="counts[`${day}T${time}`]" text-xs>
+          <span v-if="counts[`${day}T${time}`]" text-sm>
             {{ counts[`${day}T${time}`] }}
           </span>
         </div>
