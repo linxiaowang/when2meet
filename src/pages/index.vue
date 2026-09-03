@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import { useSafePad } from '~/composables/useSafePad'
 import { eventPath, todayIso, useEventStore } from '~/stores/event'
 
 definePage({
   layout: 'home',
   style: {
     navigationBarTitleText: '约',
+    navigationStyle: 'custom',
     enableShareAppMessage: true,
   },
 })
 
 const store = useEventStore()
+const { navTop, navHeight, padRight, padBottom } = useSafePad()
 const title = ref('')
 const startDate = ref(todayIso())
 const dayCount = ref(7)
@@ -21,11 +24,29 @@ const hourLabels = hours.map(h => `${String(h).padStart(2, '0')}:00`)
 const dayChoices = [3, 7, 14]
 const dayLabels = ['3 天', '7 天', '14 天']
 
+const canCreate = computed(() => Boolean(title.value.trim()) && !creating.value)
+
 onShareAppMessage(() => ({
   title: title.value || '约',
   path: '/pages/index',
   imageUrl: '/static/logo.png',
 }))
+
+function onStartDate(e: any) {
+  startDate.value = String(e.detail.value)
+}
+
+function onDayCount(e: any) {
+  dayCount.value = dayChoices[Number(e.detail.value)] ?? 7
+}
+
+function onStartHour(e: any) {
+  startHour.value = Number(e.detail.value)
+}
+
+function onEndHour(e: any) {
+  endHour.value = Number(e.detail.value)
+}
 
 async function create() {
   const theme = title.value.trim()
@@ -54,133 +75,189 @@ async function create() {
 </script>
 
 <template>
-  <div class="create">
-    <p class="brand">
-      约
-    </p>
-    <p class="lead">
-      建一个约会，把链接发给别人，一起涂格子找重叠空档。
-    </p>
+  <view
+    class="create"
+    :style="{
+      paddingTop: `${navTop}px`,
+      paddingBottom: `${Math.max(24, padBottom + 16)}px`,
+    }"
+  >
+    <view
+      class="nav"
+      :style="{ height: `${navHeight}px`, paddingRight: `${padRight}px` }"
+    >
+      <text class="brand">约</text>
+    </view>
 
-    <label class="lab">主题</label>
+    <text class="lead">建一个约会，把链接发给别人，一起涂格子找重叠空档。</text>
+
+    <text class="lab">主题</text>
     <input
       v-model="title"
       class="field"
       type="text"
       placeholder="比如周五晚饭"
+      placeholder-class="ph"
+      placeholder-style="font-size:16px;color:#9ca3af;line-height:48px;"
       confirm-type="done"
     >
 
-    <p class="lab">
-      从哪天开始
-    </p>
-    <picker mode="date" :value="startDate" @change="startDate = $event.detail.value">
-      <div class="field tap">
-        {{ startDate }}
-      </div>
+    <text class="lab">从哪天开始</text>
+    <picker mode="date" :value="startDate" @change="onStartDate">
+      <view class="field tap">
+        <text>{{ startDate }}</text>
+      </view>
     </picker>
 
-    <p class="lab">
-      持续几天
-    </p>
-    <picker :value="dayChoices.indexOf(dayCount)" :range="dayLabels" @change="dayCount = dayChoices[Number($event.detail.value)]">
-      <div class="field tap">
-        {{ dayCount }} 天
-      </div>
+    <text class="lab">持续几天</text>
+    <picker :value="dayChoices.indexOf(dayCount)" :range="dayLabels" @change="onDayCount">
+      <view class="field tap">
+        <text>{{ dayCount }} 天</text>
+      </view>
     </picker>
 
-    <p class="lab">
-      每天时间段
-    </p>
-    <div class="row">
-      <picker class="grow" :value="startHour" :range="hourLabels" @change="startHour = Number($event.detail.value)">
-        <div class="field tap">
-          {{ hourLabels[startHour] }}
-        </div>
+    <text class="lab">每天时间段</text>
+    <view class="row">
+      <picker class="grow" :value="startHour" :range="hourLabels" @change="onStartHour">
+        <view class="field tap">
+          <text>{{ hourLabels[startHour] }}</text>
+        </view>
       </picker>
-      <span class="to">到</span>
-      <picker class="grow" :value="endHour" :range="hourLabels" @change="endHour = Number($event.detail.value)">
-        <div class="field tap">
-          {{ hourLabels[endHour] }}
-        </div>
+      <text class="to">到</text>
+      <picker class="grow" :value="endHour" :range="hourLabels" @change="onEndHour">
+        <view class="field tap">
+          <text>{{ hourLabels[endHour] }}</text>
+        </view>
       </picker>
-    </div>
+    </view>
 
     <button
       class="go"
-      :disabled="!title.trim() || creating"
+      :class="{ 'is-wait': !canCreate }"
+      hover-class="go-hover"
       @click="create"
     >
-      {{ creating ? '创建中…' : '发起约' }}
+      <text class="go-txt">{{ creating ? '创建中…' : '发起约' }}</text>
     </button>
-  </div>
+  </view>
 </template>
 
 <style scoped>
 .create {
   max-width: 420px;
+  padding-left: 16px;
+  padding-right: 16px;
   text-align: left;
+  box-sizing: border-box;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 }
 .brand {
-  margin: 0;
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 700;
+  line-height: 1.2;
+  color: #111827;
+}
+.dark .brand {
+  color: #f9fafb;
 }
 .lead {
-  margin: 8px 0 20px;
+  display: block;
+  margin: 12px 0 8px;
   font-size: 14px;
-  opacity: 0.75;
+  line-height: 1.55;
+  color: #4b5563;
+}
+.dark .lead {
+  color: #d1d5db;
 }
 .lab {
   display: block;
-  margin: 14px 0 6px;
+  margin: 16px 0 8px;
   font-size: 13px;
-  opacity: 0.8;
+  line-height: 1.4;
+  color: #4b5563;
+}
+.dark .lab {
+  color: #d1d5db;
 }
 .field {
   display: block;
   width: 100%;
+  height: 48px;
+  min-height: 48px;
   box-sizing: border-box;
-  padding: 12px 12px;
+  padding: 0 12px;
   font-size: 16px;
-  line-height: 1.4;
-  color: inherit;
-  background: transparent;
+  line-height: 48px;
+  color: #111827;
+  background-color: #ffffff;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  outline: none;
+  border-radius: 8px;
 }
 .dark .field {
+  color: #f9fafb;
+  background-color: #1f2937;
   border-color: #4b5563;
 }
+.ph {
+  font-size: 16px;
+  line-height: 48px;
+  color: #9ca3af;
+}
 .tap {
-  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 .row {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
 }
 .grow {
   flex: 1;
   min-width: 0;
 }
 .to {
-  opacity: 0.6;
+  margin: 0 8px;
   font-size: 13px;
+  color: #6b7280;
+  flex-shrink: 0;
 }
 .go {
   display: block;
   width: 100%;
-  margin: 24px 0 0;
-  padding: 14px 12px;
-  font-size: 16px;
-  color: #fff;
-  background: #0d9488;
-  border: 0;
-  border-radius: 6px;
+  height: 48px;
+  margin: 28px 0 0;
+  padding: 0;
+  line-height: 48px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff !important;
+  background-color: #0d9488 !important;
+  border: none;
+  border-radius: 8px;
 }
-.go:disabled {
-  opacity: 0.5;
+.go::after {
+  border: none;
+}
+.go-hover {
+  opacity: 0.88;
+}
+.go-txt {
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+}
+.go.is-wait {
+  background-color: #0f766e !important;
+  color: #ffffff !important;
+  opacity: 1;
+}
+.go.is-wait .go-txt {
+  color: #ffffff;
 }
 </style>

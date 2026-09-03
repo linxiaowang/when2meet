@@ -1,27 +1,26 @@
 <template>
-  <div
+  <view
     class="app" :class="{
       dark: isDark,
     }"
   >
-    <main
+    <view
       class="shell"
       font-sans
       color="gray-700 dark:gray-200"
     >
       <slot />
-    </main>
-  </div>
+    </view>
+  </view>
 </template>
 
 <style scoped>
 .app {
   min-height: 100%;
-  min-height: 100dvh;
 }
 .shell {
   box-sizing: border-box;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(32px + env(safe-area-inset-bottom, 0px));
+  padding: 0;
   text-align: left;
 }
 </style>

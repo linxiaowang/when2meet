@@ -280,6 +280,7 @@ declare global {
   const useRoute: typeof import('uni-use-router').useRoute
   const useRouter: typeof import('uni-use-router').useRouter
   const useSSRWidth: typeof import('@vueuse/core').useSSRWidth
+  const useSafePad: typeof import('./composables/useSafePad').useSafePad
   const useScanCode: typeof import('@uni-helper/uni-use').useScanCode
   const useScreenBrightness: typeof import('@uni-helper/uni-use').useScreenBrightness
   const useScreenOrientation: typeof import('@vueuse/core').useScreenOrientation
@@ -641,6 +642,7 @@ declare module 'vue' {
     readonly useRoute: UnwrapRef<typeof import('uni-use-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('uni-use-router')['useRouter']>
     readonly useSSRWidth: UnwrapRef<typeof import('@vueuse/core')['useSSRWidth']>
+    readonly useSafePad: UnwrapRef<typeof import('./composables/useSafePad')['useSafePad']>
     readonly useScanCode: UnwrapRef<typeof import('@uni-helper/uni-use')['useScanCode']>
     readonly useScreenBrightness: UnwrapRef<typeof import('@uni-helper/uni-use')['useScreenBrightness']>
     readonly useScreenOrientation: UnwrapRef<typeof import('@vueuse/core')['useScreenOrientation']>

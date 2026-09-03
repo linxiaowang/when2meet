@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { YueEvent } from '~/stores/event'
+import { useSafePad } from '~/composables/useSafePad'
 import {
   eventDays,
   eventPath,
@@ -21,10 +22,13 @@ definePage({
 })
 
 const store = useEventStore()
+const instance = getCurrentInstance()
+const { navTop, navHeight, padRight, padBottom, windowHeight, read } = useSafePad()
 const event = ref<YueEvent | null>(null)
 const name = ref('')
 const loading = ref(true)
 const saving = ref(false)
+const gridHeight = ref(360)
 
 const title = computed(() => event.value?.title || props.t || '约')
 const days = computed(() => event.value ? eventDays(event.value) : [])
@@ -37,6 +41,7 @@ const mine = computed(() => {
   return event.value.participants.find(p => p.id === store.selfId)?.slots || []
 })
 const people = computed(() => event.value?.participants.filter(p => p.slots.length) || [])
+const peopleLine = computed(() => people.value.length ? people.value.map(p => p.name).join('、') : '还没有人')
 const best = computed(() => {
   let top = 0
   let label = ''
@@ -58,6 +63,22 @@ onShareAppMessage(() => ({
   imageUrl: '/static/logo.png',
 }))
 
+function measureGrid() {
+  nextTick(() => {
+    const inst = instance?.proxy
+    const q = inst ? uni.createSelectorQuery().in(inst) : uni.createSelectorQuery()
+    q.select('.grid-wrap').boundingClientRect()
+    q.exec((res) => {
+      const rect = Array.isArray(res) ? res[0] : res
+      const sys = uni.getSystemInfoSync()
+      const vh = sys.windowHeight || windowHeight.value
+      const top = typeof rect?.top === 'number' ? rect.top : 260
+      const bottom = padBottom.value || 0
+      gridHeight.value = Math.max(280, Math.floor(vh - top - bottom))
+    })
+  })
+}
+
 async function refresh() {
   if (!props.id)
     return
@@ -65,6 +86,7 @@ async function refresh() {
   const me = event.value?.participants.find(p => p.id === store.selfId)
   if (me?.name && me.name !== '匿名' && !name.value)
     name.value = me.name
+  measureGrid()
 }
 
 async function paint(slots: string[]) {
@@ -108,11 +130,17 @@ watchDebounced(name, async () => {
 
 onLoad(async (query) => {
   loading.value = true
+  read()
   if (!props.id && query?.id)
     await store.loadEvent(String(query.id)).then((e) => { event.value = e })
   else
     await refresh()
   loading.value = false
+  measureGrid()
+})
+
+onReady(() => {
+  measureGrid()
 })
 
 onMounted(async () => {
@@ -123,6 +151,7 @@ onMounted(async () => {
     await refresh()
     loading.value = false
   }
+  measureGrid()
 })
 
 let timer: ReturnType<typeof setInterval>
@@ -142,52 +171,57 @@ onUnload(() => {
 </script>
 
 <template>
-  <div class="event">
-    <p class="brand">
-      {{ title }}
-    </p>
-    <p class="lead">
-      按住格子滑动涂你有空的时间。颜色越深，重叠的人越多。
-    </p>
+  <view
+    class="event"
+    :style="{ paddingTop: `${navTop}px` }"
+  >
+    <view
+      class="nav"
+      :style="{ height: `${navHeight}px`, paddingRight: `${padRight}px` }"
+    >
+      <text class="brand">{{ title }}</text>
+    </view>
 
-    <div class="toolbar">
+    <text class="lead">按住格子滑动涂你有空的时间。颜色越深，重叠的人越多。</text>
+
+    <view class="name-row">
       <input
         v-model="name"
         class="name"
         type="text"
         placeholder="你的名字（可选）"
+        placeholder-class="ph"
+        placeholder-style="font-size:16px;color:#9ca3af;line-height:44px;"
         confirm-type="done"
       >
-      <button class="act" :disabled="saving" @click="saveName">
-        {{ saving ? '保存中…' : '保存' }}
-      </button>
-      <button class="act" @click="copyLink">
-        复制
-      </button>
-    </div>
+    </view>
 
-    <p v-if="loading" class="note">
-      正在打开这个约…
-    </p>
-    <p v-else-if="!event" class="note">
-      没找到这个约。请让发起人重新发链接。
-    </p>
-    <div v-else class="body">
-      <p class="status">
-        已填：{{ people.length ? people.map(p => p.name).join('、') : '还没有人' }}
-        ·
-        {{ best }}
-      </p>
-      <TimeGrid
-        :days="days"
-        :times="times"
-        :counts="counts"
-        :mine="mine"
-        :max-count="maxCount"
-        @paint="paint"
-      />
-    </div>
-  </div>
+    <view class="actions">
+      <button class="act" hover-class="act-hover" @click="saveName">
+        <text class="act-txt">{{ saving ? '保存中…' : '保存' }}</text>
+      </button>
+      <button class="act" hover-class="act-hover" @click="copyLink">
+        <text class="act-txt">复制</text>
+      </button>
+    </view>
+
+    <text v-if="loading" class="note">正在打开这个约…</text>
+    <text v-else-if="!event" class="note">没找到这个约。请让发起人重新发链接。</text>
+    <view v-else class="body">
+      <text class="status">已填：{{ peopleLine }} · {{ best }}</text>
+      <view class="grid-wrap">
+        <TimeGrid
+          :days="days"
+          :times="times"
+          :counts="counts"
+          :mine="mine"
+          :max-count="maxCount"
+          :height="gridHeight"
+          @paint="paint"
+        />
+      </view>
+    </view>
+  </view>
 </template>
 
 <style scoped>
@@ -197,77 +231,123 @@ onUnload(() => {
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
+  padding-left: 12px;
+  padding-right: 12px;
+  box-sizing: border-box;
   text-align: left;
   overflow: hidden;
 }
-.brand {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.3;
+.nav {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+.brand {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  color: #111827;
+}
+.dark .brand {
+  color: #f9fafb;
 }
 .lead {
-  margin: 4px 0 8px;
-  font-size: 12px;
-  line-height: 1.4;
-  opacity: 0.75;
+  display: block;
+  margin: 10px 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4b5563;
   flex-shrink: 0;
 }
-.toolbar {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  align-items: center;
-  margin: 0 0 8px;
+.dark .lead {
+  color: #d1d5db;
+}
+.name-row {
   flex-shrink: 0;
-  position: relative;
-  z-index: 1;
+  margin: 0 0 8px;
 }
 .name {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 40px;
+  display: block;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
   box-sizing: border-box;
-  padding: 8px 10px;
+  padding: 0 12px;
   font-size: 16px;
-  color: inherit;
-  background: transparent;
+  line-height: 44px;
+  color: #111827;
+  background-color: #ffffff;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  outline: none;
+  border-radius: 8px;
 }
 .dark .name {
+  color: #f9fafb;
+  background-color: #1f2937;
   border-color: #4b5563;
 }
-.act {
-  flex: 0 0 auto;
-  min-height: 40px;
-  padding: 8px 10px;
-  font-size: 14px;
-  color: #fff;
-  background: #0d9488;
-  border: 0;
-  border-radius: 6px;
-  white-space: nowrap;
+.ph {
+  font-size: 16px;
+  line-height: 44px;
+  color: #9ca3af;
 }
-.act:disabled {
-  opacity: 0.5;
+.actions {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  margin: 0 0 8px;
+}
+.act {
+  flex: 1;
+  height: 40px;
+  margin: 0 6px 0 0;
+  padding: 0;
+  line-height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff !important;
+  background-color: #0d9488 !important;
+  border: none;
+  border-radius: 8px;
+}
+.act:last-child {
+  margin-right: 0;
+}
+.act::after {
+  border: none;
+}
+.act-hover {
+  opacity: 0.88;
+}
+.act-txt {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
 }
 .body {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 0;
+  overflow: hidden;
 }
 .status,
 .note {
+  display: block;
   margin: 0 0 8px;
   font-size: 12px;
-  line-height: 1.4;
-  opacity: 0.8;
+  line-height: 1.45;
+  color: #4b5563;
   flex-shrink: 0;
+}
+.dark .status,
+.dark .note {
+  color: #d1d5db;
+}
+.grid-wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 280px;
 }
 </style>
