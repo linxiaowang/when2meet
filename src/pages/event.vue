@@ -14,7 +14,7 @@ const props = defineProps<{ id?: string, t?: string }>()
 
 definePage({
   style: {
-    navigationBarTitleText: '约',
+    navigationBarTitleText: '约个空',
     navigationStyle: 'custom',
     disableScroll: true,
     enableShareAppMessage: true,
@@ -29,7 +29,7 @@ const loading = ref(true)
 const saving = ref(false)
 const gridHeight = ref(360)
 
-const title = computed(() => event.value?.title || props.t || '约')
+const title = computed(() => event.value?.title || props.t || '约个空')
 const days = computed(() => event.value ? eventDays(event.value) : [])
 const times = computed(() => event.value ? eventTimes(event.value) : [])
 const counts = computed(() => event.value ? slotCounts(event.value) : {})

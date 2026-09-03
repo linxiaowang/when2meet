@@ -5,7 +5,7 @@ const props = withDefaults(defineProps<{
   title?: string
   showBack?: boolean
 }>(), {
-  title: '约',
+  title: '约个空',
   showBack: false,
 })
 

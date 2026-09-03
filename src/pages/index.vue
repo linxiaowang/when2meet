@@ -6,7 +6,7 @@ import { eventPath, todayIso, useEventStore } from '~/stores/event'
 definePage({
   layout: 'home',
   style: {
-    navigationBarTitleText: '约',
+    navigationBarTitleText: '约个空',
     navigationStyle: 'custom',
     enableShareAppMessage: true,
   },
@@ -16,19 +16,19 @@ const store = useEventStore()
 const { padBottom } = useSafePad()
 const title = ref('')
 const startDate = ref(todayIso())
-const dayCount = ref(7)
+const dayCount = ref(3)
 const startHour = ref(9)
 const endHour = ref(21)
 const creating = ref(false)
 const hours = Array.from({ length: 24 }, (_, i) => i)
 const hourLabels = hours.map(h => `${String(h).padStart(2, '0')}:00`)
-const dayChoices = [3, 7, 14]
-const dayLabels = ['3 天', '7 天', '14 天']
+const dayChoices = [1, 3, 7]
+const dayLabels = ['1 天', '3 天', '7 天']
 
 const canCreate = computed(() => Boolean(title.value.trim()) && !creating.value)
 
 onShareAppMessage(() => ({
-  title: title.value || '约',
+  title: title.value || '约个空',
   path: '/pages/index',
   imageUrl: '/static/logo.png',
 }))
@@ -38,7 +38,7 @@ function onStartDate(e: any) {
 }
 
 function onDayCount(e: any) {
-  dayCount.value = dayChoices[Number(e.detail.value)] ?? 7
+  dayCount.value = dayChoices[Number(e.detail.value)] ?? 3
 }
 
 function onStartHour(e: any) {
@@ -85,9 +85,9 @@ async function create() {
       paddingBottom: `${Math.max(24, padBottom + 16)}px`,
     }"
   >
-    <YueHeader title="约" />
+    <YueHeader title="约个空" />
 
-    <text class="lead">建一个约会，把链接发给别人，一起涂格子找重叠空档。</text>
+    <text class="lead">建一个约，点分享发给别人，一起涂格子找空档。</text>
 
     <text class="lab">主题</text>
     <input
