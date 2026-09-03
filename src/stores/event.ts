@@ -72,30 +72,20 @@ function getWxCloud() {
   return g.wx.cloud
 }
 
-async function callYue<T>(data: Record<string, unknown>): Promise<T> {
+interface YueCloudResult {
+  ok?: boolean
+  event?: YueEvent
+  openid?: string
+  error?: string
+}
+
+async function callYue(data: Record<string, unknown>): Promise<{ event: YueEvent, openid?: string }> {
   const cloud = getWxCloud()
   const res = await cloud.callFunction({ name: 'yue', data })
-  const result = res.result as { ok?: boolean, event?: T, error?: string }
+  const result = res.result as YueCloudResult
   if (!result?.ok || !result.event)
     throw new Error(result?.error || 'cloud fail')
-  return result.event
-}
-
-async function createRemote(draft: Omit<YueEvent, 'id' | 'participants'>) {
-  return callYue<YueEvent>({ action: 'create', ...draft })
-}
-
-async function fetchRemote(id: string) {
-  try {
-    return await callYue<YueEvent>({ action: 'get', id })
-  }
-  catch {
-    return null
-  }
-}
-
-async function putRemote(id: string, body: { name: string, participantId: string, slots: string[] }) {
-  return callYue<YueEvent>({ action: 'put', id, ...body })
+  return { event: result.event, openid: result.openid }
 }
 
 function readStorage<T>(key: string, fallback: T): T {
@@ -135,14 +125,31 @@ function persistRef<T>(key: string, fallback: T) {
 
 export const useEventStore = defineStore('yue', () => {
   const events = persistRef<Record<string, YueEvent>>('yue-events', {})
-  const selfId = persistRef('yue-self-id', createId())
+  const selfId = persistRef('yue-self-id', '')
 
   function cache(event: YueEvent) {
     events.value = { ...events.value, [event.id]: event }
   }
 
+  function adoptOpenid(openid?: string) {
+    if (!openid)
+      return
+    selfId.value = openid
+    try {
+      if (typeof uni !== 'undefined' && typeof uni.setStorageSync === 'function')
+        uni.setStorageSync('yue-self-id', openid)
+    }
+    catch {}
+  }
+
+  async function runYue(data: Record<string, unknown>) {
+    const { event, openid } = await callYue(data)
+    adoptOpenid(openid)
+    return event
+  }
+
   async function createEvent(draft: Omit<YueEvent, 'id' | 'participants'>) {
-    const created = await createRemote(draft)
+    const created = await runYue({ action: 'create', ...draft })
     if (!created?.id)
       throw new Error('create failed')
     cache(created)
@@ -150,8 +157,8 @@ export const useEventStore = defineStore('yue', () => {
   }
 
   async function loadEvent(id: string) {
-    const remote = await fetchRemote(id)
-    if (remote) {
+    try {
+      const remote = await runYue({ action: 'get', id })
       const merged: YueEvent = {
         ...remote,
         id,
@@ -160,13 +167,16 @@ export const useEventStore = defineStore('yue', () => {
       cache(merged)
       return merged
     }
-    return null
+    catch {
+      return null
+    }
   }
 
   async function saveMine(id: string, name: string, slots: string[]) {
-    const saved = await putRemote(id, {
+    const saved = await runYue({
+      action: 'put',
+      id,
       name,
-      participantId: selfId.value,
       slots,
     })
     cache(saved)

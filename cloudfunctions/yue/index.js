@@ -24,9 +24,19 @@ function createId() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
 }
 
+function wxOpenid() {
+  const ctx = cloud.getWXContext()
+  return String((ctx && ctx.OPENID) || '')
+}
+
+function ok(doc, openid) {
+  return { ok: true, event: strip(doc), openid }
+}
+
 exports.main = async (event) => {
   const col = db.collection(COL)
   const action = event && event.action
+  const openid = wxOpenid()
   try {
     if (action === 'create') {
       const id = createId()
@@ -43,7 +53,7 @@ exports.main = async (event) => {
         createdAt: Date.now(),
       }
       await col.add({ data: row })
-      return { ok: true, event: strip(row) }
+      return ok(row, openid)
     }
     if (action === 'get') {
       const id = String(event.id || '')
@@ -57,23 +67,29 @@ exports.main = async (event) => {
         await col.doc(id).remove()
         return { ok: false, error: 'not found' }
       }
-      return { ok: true, event: strip(doc) }
+      return ok(doc, openid)
     }
     if (action === 'put') {
       const id = String(event.id || '')
+      if (!openid)
+        return { ok: false, error: 'no openid' }
       const snap = await col.doc(id).get()
       const doc = snap.data
       if (!doc)
         return { ok: false, error: 'not found' }
-      const pid = String(event.participantId || createId())
       const mine = {
-        id: pid,
+        id: openid,
         name: String(event.name || '').trim() || '匿名',
         slots: Array.isArray(event.slots) ? event.slots.map(String) : [],
       }
-      const participants = [...(doc.participants || []).filter(p => p.id !== pid), mine]
-      await col.doc(id).update({ data: { participants } })
-      return { ok: true, event: strip({ ...doc, participants }) }
+      const list = [...(doc.participants || [])]
+      const idx = list.findIndex(p => p && p.id === openid)
+      if (idx >= 0)
+        list[idx] = mine
+      else
+        list.push(mine)
+      await col.doc(id).update({ data: { participants: list } })
+      return ok({ ...doc, participants: list }, openid)
     }
     return { ok: false, error: 'unknown action' }
   }
