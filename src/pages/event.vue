@@ -115,6 +115,10 @@ function copyLink() {
   })
 }
 
+function goHome() {
+  uni.reLaunch({ url: '/pages/index' })
+}
+
 watchDebounced(name, async () => {
   await saveName()
 }, { debounce: 600 })
@@ -170,6 +174,9 @@ onUnload(() => {
       class="nav"
       :style="{ height: `${navHeight}px`, paddingRight: `${padRight}px` }"
     >
+      <view class="back" hover-class="back-hover" @click="goHome">
+        <text class="back-txt">返回</text>
+      </view>
       <text class="brand">{{ title }}</text>
     </view>
 
@@ -224,11 +231,29 @@ onUnload(() => {
 }
 .nav {
   display: flex;
+  flex-direction: row;
   align-items: center;
   flex-shrink: 0;
   box-sizing: border-box;
+  padding-left: 0;
+}
+.back {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 10px 0 0;
+  display: flex;
+  align-items: center;
+}
+.back-txt {
+  font-size: 15px;
+  line-height: 32px;
+  color: #0d9488;
+}
+.back-hover {
+  opacity: 0.7;
 }
 .brand {
+  flex: 1;
   font-size: 17px;
   font-weight: 700;
   line-height: 1.2;
