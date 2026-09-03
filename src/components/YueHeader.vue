@@ -40,7 +40,7 @@ function onBack() {
       class="bar"
       :style="{
         height: `${navHeight}px`,
-        paddingLeft: showBack ? '8px' : '16px',
+        paddingLeft: showBack ? '8px' : '0',
         paddingRight: `${padRight}px`,
       }"
     >
