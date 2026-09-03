@@ -5,10 +5,7 @@
 
 type _LocationUrl =
   "/pages/index" |
-  "/pages/event" |
-  "/pages/hi" |
-  "/pages/webview" |
-  "/pages-sub/index";
+  "/pages/event";
 
 interface NavigateToOptions {
   url: _LocationUrl;
