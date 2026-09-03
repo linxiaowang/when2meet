@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { YueEvent } from '~/stores/event'
+import YueHeader from '~/components/YueHeader.vue'
 import { useSafePad } from '~/composables/useSafePad'
 import {
   eventDays,
@@ -22,7 +23,7 @@ definePage({
 })
 
 const store = useEventStore()
-const { navTop, navHeight, padBottom, windowHeight, read } = useSafePad()
+const { padTop, padBottom, windowHeight, read } = useSafePad()
 const event = ref<YueEvent | null>(null)
 const name = ref('')
 const loading = ref(true)
@@ -64,8 +65,8 @@ onShareAppMessage(() => ({
 
 function measureGrid() {
   read()
-  const chrome = navHeight.value + 176 + (padBottom.value || 8)
-  gridHeight.value = Math.max(320, Math.floor(windowHeight.value - navTop.value - chrome))
+  const chrome = padTop.value + 176 + (padBottom.value || 8)
+  gridHeight.value = Math.max(320, Math.floor(windowHeight.value - chrome))
 }
 
 measureGrid()

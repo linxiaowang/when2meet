@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import YueHeader from '~/components/YueHeader.vue'
 import { useSafePad } from '~/composables/useSafePad'
 import { eventPath, todayIso, useEventStore } from '~/stores/event'
 

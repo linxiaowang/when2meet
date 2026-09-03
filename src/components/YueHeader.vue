@@ -13,7 +13,11 @@ const emit = defineEmits<{
   back: []
 }>()
 
-const { navTop, navHeight, padRight } = useSafePad()
+const { navTop, navHeight, padTop, padRight, read } = useSafePad()
+
+onReady(() => {
+  read()
+})
 
 function onBack() {
   emit('back')
@@ -26,11 +30,19 @@ function onBack() {
 <template>
   <view
     class="yue-header"
-    :style="{ paddingTop: `${navTop}px` }"
+    :style="{
+      height: `${padTop}px`,
+      paddingTop: `${navTop}px`,
+      boxSizing: 'border-box',
+    }"
   >
     <view
       class="bar"
-      :style="{ height: `${navHeight}px`, paddingLeft: '8px', paddingRight: `${padRight}px` }"
+      :style="{
+        height: `${navHeight}px`,
+        paddingLeft: '8px',
+        paddingRight: `${padRight}px`,
+      }"
     >
       <view
         v-if="showBack"
@@ -48,6 +60,8 @@ function onBack() {
 <style scoped>
 .yue-header {
   flex-shrink: 0;
+  width: 100%;
+  overflow: hidden;
 }
 .bar {
   display: flex;

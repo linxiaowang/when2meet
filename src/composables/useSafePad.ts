@@ -1,13 +1,13 @@
 /**
- * WeChat custom nav: pad around statusBar + capsule (menu button).
- * H5 falls back to a modest top inset when there is no menu button.
+ * WeChat custom nav: pad using the capsule button box.
+ * Header height = getMenuButtonBoundingClientRect().bottom (status bar + capsule).
  */
 export function useSafePad() {
-  const statusBarHeight = ref(20)
-  const navTop = ref(20)
+  const statusBarHeight = ref(44)
+  const navTop = ref(44)
   const navHeight = ref(32)
-  const padTop = ref(56)
-  const padRight = ref(12)
+  const padTop = ref(88)
+  const padRight = ref(96)
   const padBottom = ref(8)
   const windowHeight = ref(667)
   const windowWidth = ref(375)
@@ -17,7 +17,8 @@ export function useSafePad() {
       const sys = uni.getSystemInfoSync()
       windowHeight.value = sys.windowHeight || 667
       windowWidth.value = sys.windowWidth || 375
-      statusBarHeight.value = sys.statusBarHeight || 0
+      const bar = sys.statusBarHeight || sys.safeAreaInsets?.top || 44
+      statusBarHeight.value = bar
       padBottom.value = sys.safeAreaInsets?.bottom || 8
 
       let menu: ReturnType<typeof uni.getMenuButtonBoundingClientRect> | null = null
@@ -28,27 +29,30 @@ export function useSafePad() {
         menu = null
       }
 
-      if (menu && menu.width > 0 && menu.bottom > 0) {
+      if (menu && menu.bottom > 0) {
         navTop.value = menu.top
-        navHeight.value = menu.height
-        padTop.value = menu.bottom + 10
-        padRight.value = Math.max(12, windowWidth.value - menu.left + 8)
+        navHeight.value = menu.height > 0 ? menu.height : 32
+        padTop.value = menu.bottom
+        const rightGap = windowWidth.value - menu.left
+        padRight.value = Math.max(12, rightGap + 8)
       }
       else {
-        const bar = statusBarHeight.value || 0
         navTop.value = bar
-        navHeight.value = 44
-        padTop.value = bar + 12
-        padRight.value = 12
+        navHeight.value = 32
+        padTop.value = bar + 48
+        padRight.value = 96
       }
     }
     catch {
-      padTop.value = 56
+      padTop.value = 88
     }
   }
 
   read()
-  onMounted(read)
+  onMounted(() => {
+    read()
+    nextTick(read)
+  })
 
   return {
     statusBarHeight,
