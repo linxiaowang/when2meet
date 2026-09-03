@@ -12,7 +12,7 @@ definePage({
 })
 
 const store = useEventStore()
-const { navTop, navHeight, padRight, padBottom } = useSafePad()
+const { padBottom } = useSafePad()
 const title = ref('')
 const startDate = ref(todayIso())
 const dayCount = ref(7)
@@ -81,16 +81,10 @@ async function create() {
   <view
     class="create"
     :style="{
-      paddingTop: `${navTop}px`,
       paddingBottom: `${Math.max(24, padBottom + 16)}px`,
     }"
   >
-    <view
-      class="nav"
-      :style="{ height: `${navHeight}px`, paddingRight: `${padRight}px` }"
-    >
-      <text class="brand">约</text>
-    </view>
+    <YueHeader title="约" />
 
     <text class="lead">建一个约会，把链接发给别人，一起涂格子找重叠空档。</text>
 
@@ -152,20 +146,6 @@ async function create() {
   padding-right: 16px;
   text-align: left;
   box-sizing: border-box;
-}
-.nav {
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-.brand {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #111827;
-}
-.dark .brand {
-  color: #f9fafb;
 }
 .lead {
   display: block;

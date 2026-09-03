@@ -22,7 +22,7 @@ definePage({
 })
 
 const store = useEventStore()
-const { navTop, navHeight, padRight, padBottom, windowHeight, read } = useSafePad()
+const { navTop, navHeight, padBottom, windowHeight, read } = useSafePad()
 const event = ref<YueEvent | null>(null)
 const name = ref('')
 const loading = ref(true)
@@ -121,10 +121,6 @@ function copyLink() {
   })
 }
 
-function goHome() {
-  uni.reLaunch({ url: '/pages/index' })
-}
-
 watchDebounced(name, async () => {
   await saveName()
 }, { debounce: 600 })
@@ -174,55 +170,49 @@ onUnload(() => {
 <template>
   <view
     class="event"
-    :style="{ height: `${windowHeight}px`, paddingTop: `${navTop}px` }"
+    :style="{ height: `${windowHeight}px` }"
   >
-    <view
-      class="nav"
-      :style="{ height: `${navHeight}px`, paddingRight: `${padRight}px` }"
-    >
-      <view class="back" hover-class="back-hover" @click="goHome">
-        <text class="back-txt">返回</text>
+    <YueHeader :title="title" :show-back="true" />
+
+    <view class="content">
+      <text class="lead">按住格子滑动涂你有空的时间。颜色越深，重叠的人越多。</text>
+
+      <view class="name-row">
+        <input
+          v-model="name"
+          class="name"
+          type="text"
+          placeholder="你的名字（可选）"
+          placeholder-class="ph"
+          placeholder-style="font-size:16px;color:#9ca3af;line-height:44px;"
+          confirm-type="done"
+        >
       </view>
-      <text class="brand">{{ title }}</text>
-    </view>
 
-    <text class="lead">按住格子滑动涂你有空的时间。颜色越深，重叠的人越多。</text>
+      <view class="actions">
+        <button class="act" hover-class="act-hover" @click="saveName">
+          <text class="act-txt">{{ saving ? '保存中…' : '保存' }}</text>
+        </button>
+        <button class="act" hover-class="act-hover" @click="copyLink">
+          <text class="act-txt">复制</text>
+        </button>
+      </view>
 
-    <view class="name-row">
-      <input
-        v-model="name"
-        class="name"
-        type="text"
-        placeholder="你的名字（可选）"
-        placeholder-class="ph"
-        placeholder-style="font-size:16px;color:#9ca3af;line-height:44px;"
-        confirm-type="done"
-      >
-    </view>
-
-    <view class="actions">
-      <button class="act" hover-class="act-hover" @click="saveName">
-        <text class="act-txt">{{ saving ? '保存中…' : '保存' }}</text>
-      </button>
-      <button class="act" hover-class="act-hover" @click="copyLink">
-        <text class="act-txt">复制</text>
-      </button>
-    </view>
-
-    <text v-if="loading" class="note">正在打开这个约…</text>
-    <text v-else-if="!event" class="note">没找到这个约。请让发起人重新发链接。</text>
-    <view v-else class="body">
-      <text class="status">已填：{{ peopleLine }} · {{ best }}</text>
-      <view class="grid-wrap" :style="{ height: `${gridHeight}px` }">
-        <TimeGrid
-          :days="days"
-          :times="times"
-          :counts="counts"
-          :mine="mine"
-          :max-count="maxCount"
-          :height="gridHeight"
-          @paint="paint"
-        />
+      <text v-if="loading" class="note">正在打开这个约…</text>
+      <text v-else-if="!event" class="note">没找到这个约。请让发起人重新发链接。</text>
+      <view v-else class="body">
+        <text class="status">已填：{{ peopleLine }} · {{ best }}</text>
+        <view class="grid-wrap" :style="{ height: `${gridHeight}px` }">
+          <TimeGrid
+            :days="days"
+            :times="times"
+            :counts="counts"
+            :mine="mine"
+            :max-count="maxCount"
+            :height="gridHeight"
+            @paint="paint"
+          />
+        </view>
       </view>
     </view>
   </view>
@@ -231,43 +221,11 @@ onUnload(() => {
 <style scoped>
 .event {
   box-sizing: border-box;
+  overflow: hidden;
+}
+.content {
   padding-left: 12px;
   padding-right: 12px;
-  overflow: hidden;
-}
-.nav {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  padding-left: 0;
-}
-.back {
-  flex-shrink: 0;
-  height: 32px;
-  padding: 0 10px 0 0;
-  display: flex;
-  align-items: center;
-}
-.back-txt {
-  font-size: 15px;
-  line-height: 32px;
-  color: #0d9488;
-}
-.back-hover {
-  opacity: 0.7;
-}
-.brand {
-  flex: 1;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.2;
-  overflow: hidden;
-  color: #111827;
-}
-.dark .brand {
-  color: #f9fafb;
 }
 .lead {
   display: block;
