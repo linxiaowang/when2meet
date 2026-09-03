@@ -21,22 +21,6 @@ function strip(doc) {
   }
 }
 
-function redactEvent(doc, requesterOpenid) {
-  const event = strip(doc)
-  if (!event)
-    return null
-  const creatorId = event.creatorId
-  // Old events without creatorId: do not hide anyone.
-  if (!creatorId || requesterOpenid === creatorId)
-    return event
-  event.participants = (event.participants || []).map((p) => {
-    if (p && p.id === creatorId)
-      return { id: p.id, name: '', slots: p.slots || [] }
-    return p
-  })
-  return event
-}
-
 function createId() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
 }
@@ -47,7 +31,7 @@ function wxOpenid() {
 }
 
 function ok(doc, openid) {
-  return { ok: true, event: redactEvent(doc, openid), openid }
+  return { ok: true, event: strip(doc), openid }
 }
 
 exports.main = async (event) => {
