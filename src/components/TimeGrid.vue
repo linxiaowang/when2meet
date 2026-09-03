@@ -164,55 +164,61 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <scroll-view
-    class="time-grid"
-    :class="{ 'is-painting': painting }"
-    :scroll-x="!painting"
-    :scroll-y="!painting"
-    :enable-flex="true"
-    :style="{ height: `${gridHeight}px` }"
-    @touchend="endPaint"
-    @touchcancel="endPaint"
-  >
-    <view
-      class="sheet"
-      :style="{ width: `${sheetWidth}px`, minHeight: `${sheetHeight}px` }"
+  <view class="grid-box" :style="{ height: `${gridHeight}px` }">
+    <scroll-view
+      class="time-grid"
+      :class="{ 'is-painting': painting }"
+      :scroll-x="true"
+      :scroll-y="true"
+      :style="{ height: `${gridHeight}px`, width: '100%' }"
+      @touchend="endPaint"
+      @touchcancel="endPaint"
     >
-      <view class="head">
-        <view class="time-lab corner" />
-        <view
-          v-for="day in days"
-          :key="day"
-          class="day-lab"
-        >
-          <text class="day-txt">{{ shortDay(day) }}</text>
+      <view
+        class="sheet"
+        :style="{ width: `${sheetWidth}px`, height: `${sheetHeight}px` }"
+      >
+        <view class="head">
+          <view class="time-lab corner" />
+          <view
+            v-for="day in days"
+            :key="day"
+            class="day-lab"
+          >
+            <text class="day-txt">{{ shortDay(day) }}</text>
+          </view>
+        </view>
+        <view v-for="time in times" :key="time" class="row">
+          <view class="time-lab">
+            <text class="time-txt">{{ time }}</text>
+          </view>
+          <view
+            v-for="day in days"
+            :key="`${day}T${time}`"
+            class="slot"
+            :class="{ 'is-mine': mineSet.has(`${day}T${time}`) }"
+            :style="{ backgroundColor: heat(counts[`${day}T${time}`] || 0) }"
+            @touchstart="startPaint(`${day}T${time}`, $event)"
+            @touchmove.stop="movePaint"
+            @touchend="endPaint"
+            @mousedown="startPaint(`${day}T${time}`, $event)"
+          >
+            <text v-if="counts[`${day}T${time}`]" class="n">
+              {{ counts[`${day}T${time}`] }}
+            </text>
+          </view>
         </view>
       </view>
-      <view v-for="time in times" :key="time" class="row">
-        <view class="time-lab">
-          <text class="time-txt">{{ time }}</text>
-        </view>
-        <view
-          v-for="day in days"
-          :key="`${day}T${time}`"
-          class="slot"
-          :class="{ 'is-mine': mineSet.has(`${day}T${time}`) }"
-          :style="{ backgroundColor: heat(counts[`${day}T${time}`] || 0) }"
-          @touchstart="startPaint(`${day}T${time}`, $event)"
-          @touchmove.stop="movePaint"
-          @touchend="endPaint"
-          @mousedown="startPaint(`${day}T${time}`, $event)"
-        >
-          <text v-if="counts[`${day}T${time}`]" class="n">
-            {{ counts[`${day}T${time}`] }}
-          </text>
-        </view>
-      </view>
-    </view>
-  </scroll-view>
+    </scroll-view>
+  </view>
 </template>
 
 <style scoped>
+.grid-box {
+  width: 100%;
+  overflow: hidden;
+  background-color: #ffffff;
+}
 .time-grid {
   width: 100%;
   box-sizing: border-box;

@@ -22,7 +22,6 @@ definePage({
 })
 
 const store = useEventStore()
-const instance = getCurrentInstance()
 const { navTop, navHeight, padRight, padBottom, windowHeight, read } = useSafePad()
 const event = ref<YueEvent | null>(null)
 const name = ref('')
@@ -64,20 +63,12 @@ onShareAppMessage(() => ({
 }))
 
 function measureGrid() {
-  nextTick(() => {
-    const inst = instance?.proxy
-    const q = inst ? uni.createSelectorQuery().in(inst) : uni.createSelectorQuery()
-    q.select('.grid-wrap').boundingClientRect()
-    q.exec((res) => {
-      const rect = Array.isArray(res) ? res[0] : res
-      const sys = uni.getSystemInfoSync()
-      const vh = sys.windowHeight || windowHeight.value
-      const top = typeof rect?.top === 'number' ? rect.top : 260
-      const bottom = padBottom.value || 0
-      gridHeight.value = Math.max(280, Math.floor(vh - top - bottom))
-    })
-  })
+  read()
+  const chrome = navHeight.value + 176 + (padBottom.value || 8)
+  gridHeight.value = Math.max(320, Math.floor(windowHeight.value - navTop.value - chrome))
 }
+
+measureGrid()
 
 async function refresh() {
   if (!props.id)
@@ -173,7 +164,7 @@ onUnload(() => {
 <template>
   <view
     class="event"
-    :style="{ paddingTop: `${navTop}px` }"
+    :style="{ height: `${windowHeight}px`, paddingTop: `${navTop}px` }"
   >
     <view
       class="nav"
@@ -209,7 +200,7 @@ onUnload(() => {
     <text v-else-if="!event" class="note">没找到这个约。请让发起人重新发链接。</text>
     <view v-else class="body">
       <text class="status">已填：{{ peopleLine }} · {{ best }}</text>
-      <view class="grid-wrap">
+      <view class="grid-wrap" :style="{ height: `${gridHeight}px` }">
         <TimeGrid
           :days="days"
           :times="times"
@@ -226,15 +217,9 @@ onUnload(() => {
 
 <style scoped>
 .event {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  height: 100%;
+  box-sizing: border-box;
   padding-left: 12px;
   padding-right: 12px;
-  box-sizing: border-box;
-  text-align: left;
   overflow: hidden;
 }
 .nav {
@@ -326,10 +311,6 @@ onUnload(() => {
   font-weight: 600;
 }
 .body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 .status,
@@ -346,8 +327,6 @@ onUnload(() => {
   color: #d1d5db;
 }
 .grid-wrap {
-  flex: 1 1 auto;
   width: 100%;
-  min-height: 280px;
 }
 </style>
