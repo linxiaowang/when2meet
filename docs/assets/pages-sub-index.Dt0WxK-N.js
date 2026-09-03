@@ -1,1 +1,0 @@
-import{_ as a,c as t,w as e,a as n,o as u,b as l}from"./index-BcZS_4XT.js";const s=a({},[["render",function(a,s){const o=n("layout-default-uni");return u(),t(o,null,{default:e(()=>[l("div",null,[l("h1",{"mb-2":""}," Sub Page "),l("p",{"text-sm":"",italic:"",op75:""},[l("em",null,"Sub Page Content")])])]),_:1})}]]);export{s as default};

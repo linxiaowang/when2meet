@@ -34,7 +34,7 @@ function onTap(day: string, time: string) {
 </script>
 
 <template>
-  <div overflow-x-auto text-left>
+  <div overflow-x-auto text-left style="touch-action: pan-x pan-y;">
     <div min-w-max>
       <div flex>
         <div w-16 shrink-0 />
@@ -55,7 +55,7 @@ function onTap(day: string, time: string) {
           :key="`${day}T${time}`"
           m-0.5 h-14 w-16 center shrink-0 cursor-pointer select-none border="~ solid gray-200 dark:gray-700"
           :class="mineSet.has(`${day}T${time}`) ? 'ring-2 ring-inset ring-teal-700' : ''"
-          :style="{ background: heat(counts[`${day}T${time}`] || 0), minWidth: '56px', minHeight: '52px' }"
+          :style="{ background: heat(counts[`${day}T${time}`] || 0), minWidth: '56px', minHeight: '52px', touchAction: 'manipulation' }"
           @click="onTap(day, time)"
         >
           <span v-if="counts[`${day}T${time}`]" text-sm>
