@@ -16,14 +16,14 @@ const store = useEventStore()
 const { padBottom } = useSafePad()
 const title = ref('')
 const startDate = ref(todayIso())
-const dayCount = ref(3)
+const dayCount = ref(1)
 const startHour = ref(9)
 const endHour = ref(21)
 const creating = ref(false)
 const hours = Array.from({ length: 24 }, (_, i) => i)
 const hourLabels = hours.map(h => `${String(h).padStart(2, '0')}:00`)
-const dayChoices = [1, 3, 7]
-const dayLabels = ['1 天', '3 天', '7 天']
+const dayChoices = Array.from({ length: 14 }, (_, i) => i + 1)
+const dayLabels = dayChoices.map(n => `${n} 天`)
 
 const canCreate = computed(() => Boolean(title.value.trim()) && !creating.value)
 
@@ -38,7 +38,12 @@ function onStartDate(e: any) {
 }
 
 function onDayCount(e: any) {
-  dayCount.value = dayChoices[Number(e.detail.value)] ?? 3
+  const n = dayChoices[Number(e.detail.value)]
+  if (!n || n < 1 || n > 14) {
+    uni.showToast({ title: '持续天数要在 1 到 14 天', icon: 'none' })
+    return
+  }
+  dayCount.value = n
 }
 
 function onStartHour(e: any) {
@@ -55,6 +60,10 @@ async function create() {
     return
   if (endHour.value <= startHour.value) {
     uni.showToast({ title: '结束时间要晚于开始时间', icon: 'none' })
+    return
+  }
+  if (dayCount.value < 1 || dayCount.value > 14) {
+    uni.showToast({ title: '持续天数要在 1 到 14 天', icon: 'none' })
     return
   }
   creating.value = true
