@@ -17,6 +17,54 @@ export interface YueEvent {
   participants: Participant[]
 }
 
+export function createId() {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+}
+
+export function todayIso() {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+export function addDays(iso: string, n: number) {
+  const d = new Date(`${iso}T00:00:00`)
+  d.setDate(d.getDate() + n)
+  const pad = (m: number) => String(m).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+export function eventDays(event: YueEvent) {
+  return Array.from({ length: event.dayCount }, (_, i) => addDays(event.startDate, i))
+}
+
+export function eventTimes(event: YueEvent) {
+  const times: string[] = []
+  const step = event.slotMinutes || 30
+  for (let h = event.startHour; h < event.endHour; h++) {
+    for (let m = 0; m < 60; m += step)
+      times.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+  }
+  return times
+}
+
+export function slotCounts(event: YueEvent) {
+  const counts: Record<string, number> = {}
+  for (const person of event.participants) {
+    for (const slot of person.slots)
+      counts[slot] = (counts[slot] || 0) + 1
+  }
+  return counts
+}
+
+export function eventPath(id: string) {
+  return `/pages/event?id=${id}`
+}
+
+export function h5ShareUrl(id: string) {
+  return eventPath(id)
+}
+
 function getWxCloud() {
   const g = globalThis as typeof globalThis & { wx?: { cloud?: { callFunction: (o: object) => Promise<{ result: unknown }> } } }
   if (!g.wx?.cloud)
