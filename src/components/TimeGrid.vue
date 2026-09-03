@@ -241,6 +241,9 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .time-lab {
+  width: 36px;
+  min-width: 36px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -250,7 +253,13 @@ onUnmounted(() => {
 .dark .time-lab {
   background-color: #121212;
 }
+.corner {
+  height: 20px;
+}
 .day-lab {
+  width: 44px;
+  min-width: 44px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -270,6 +279,10 @@ onUnmounted(() => {
   text-align: center;
 }
 .slot {
+  width: 44px;
+  min-width: 44px;
+  height: 24px;
+  min-height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
