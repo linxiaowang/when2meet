@@ -10,10 +10,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   paint: [slots: string[]]
 }>()
-const CELL_W = 76
-const CELL_H = 56
-const LABEL_W = 52
-const HEAD_H = 36
+const CELL_W = 44
+const CELL_H = 24
+const LABEL_W = 36
+const HEAD_H = 20
 
 const draft = ref(new Set(props.mine))
 const painting = ref(false)
@@ -32,12 +32,8 @@ const sheetWidth = computed(() => LABEL_W + props.days.length * CELL_W)
 const sheetHeight = computed(() => HEAD_H + props.times.length * CELL_H)
 const gridHeight = computed(() => Math.max(280, props.height || 360))
 
-function weekday(iso: string) {
-  return '日一二三四五六'[new Date(`${iso}T00:00:00`).getDay()]
-}
-
 function shortDay(iso: string) {
-  return `${iso.slice(5).replace('-', '/')} 周${weekday(iso)}`
+  return `${Number(iso.slice(5, 7))}/${Number(iso.slice(8))}`
 }
 
 function heat(count: number) {
@@ -230,7 +226,7 @@ onUnmounted(() => {
 .sheet {
   display: flex;
   flex-direction: column;
-  padding-bottom: 24px;
+  padding-bottom: 8px;
 }
 .head,
 .row {
@@ -245,25 +241,16 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .time-lab {
-  width: 52px;
-  min-width: 52px;
-  height: 56px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 6px;
+  padding-right: 4px;
   background-color: #ffffff;
 }
 .dark .time-lab {
   background-color: #121212;
 }
-.corner {
-  height: 36px;
-}
 .day-lab {
-  width: 76px;
-  min-width: 76px;
-  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,7 +261,7 @@ onUnmounted(() => {
 }
 .day-txt,
 .time-txt {
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.2;
   color: #6b7280;
   text-align: right;
@@ -283,10 +270,6 @@ onUnmounted(() => {
   text-align: center;
 }
 .slot {
-  width: 76px;
-  min-width: 76px;
-  height: 56px;
-  min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,10 +281,10 @@ onUnmounted(() => {
   background-color: #1f2937;
 }
 .slot.is-mine {
-  box-shadow: inset 0 0 0 3px #0f766e;
+  box-shadow: inset 0 0 0 2px #0f766e;
 }
 .n {
-  font-size: 14px;
+  font-size: 10px;
   color: #134e4a;
 }
 </style>
