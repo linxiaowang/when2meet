@@ -41,19 +41,57 @@ const mine = computed(() => {
 })
 const people = computed(() => event.value?.participants.filter(p => p.slots.length) || [])
 const peopleLine = computed(() => people.value.length ? people.value.map(p => p.name).join('、') : '还没有人')
+
+function shortMd(iso: string) {
+  const parts = iso.split('-')
+  return `${Number(parts[1])}/${Number(parts[2])}`
+}
+
+function addMinutes(hhmm: string, minutes: number) {
+  const [h, m] = hhmm.split(':').map(Number)
+  const total = h * 60 + m + minutes
+  const hh = Math.floor(total / 60) % 24
+  const mm = total % 60
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+}
+
 const best = computed(() => {
-  let top = 0
+  const top = maxCount.value
+  if (top <= 1)
+    return '再请别人填一下就能看到重叠'
+  const step = event.value?.slotMinutes || 30
+  let bestLen = 0
   let label = ''
   for (const day of days.value) {
+    let runStart = ''
+    let runLen = 0
+    let lastTime = ''
+    const flush = () => {
+      if (!runLen)
+        return
+      if (runLen > bestLen) {
+        bestLen = runLen
+        label = `${shortMd(day)} ${runStart}–${addMinutes(lastTime, step)}`
+      }
+      runStart = ''
+      runLen = 0
+      lastTime = ''
+    }
     for (const time of times.value) {
       const n = counts.value[`${day}T${time}`] || 0
-      if (n > top) {
-        top = n
-        label = `${day.slice(5)} ${time}`
+      if (n === top) {
+        if (!runLen)
+          runStart = time
+        runLen++
+        lastTime = time
+      }
+      else {
+        flush()
       }
     }
+    flush()
   }
-  return top > 1 ? `${label}（${top} 人重叠）` : '再请别人填一下就能看到重叠'
+  return label ? `${label}（${top} 人重叠）` : '再请别人填一下就能看到重叠'
 })
 
 onShareAppMessage(() => ({
