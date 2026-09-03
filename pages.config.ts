@@ -4,6 +4,7 @@ export default defineUniPages({
   pages: [],
   globalStyle: {
     'navigationBarTitleText': '约',
+    'navigationStyle': 'custom',
     'navigationBarBackgroundColor': '@navBgColor',
     'navigationBarTextStyle': '@navTxtStyle',
     'backgroundColor': '@bgColor',

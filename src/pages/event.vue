@@ -14,6 +14,8 @@ const props = defineProps<{ id?: string, t?: string }>()
 definePage({
   style: {
     navigationBarTitleText: '约',
+    navigationStyle: 'custom',
+    disableScroll: true,
     enableShareAppMessage: true,
   },
 })
@@ -114,6 +116,8 @@ onLoad(async (query) => {
 })
 
 onMounted(async () => {
+  if (typeof document !== 'undefined')
+    document.documentElement.classList.add('yue-lock')
   if (!event.value) {
     loading.value = true
     await refresh()
@@ -125,8 +129,16 @@ let timer: ReturnType<typeof setInterval>
 onMounted(() => {
   timer = setInterval(refresh, 8000)
 })
-onUnmounted(() => clearInterval(timer))
-onUnload(() => clearInterval(timer))
+onUnmounted(() => {
+  if (typeof document !== 'undefined')
+    document.documentElement.classList.remove('yue-lock')
+  clearInterval(timer)
+})
+onUnload(() => {
+  if (typeof document !== 'undefined')
+    document.documentElement.classList.remove('yue-lock')
+  clearInterval(timer)
+})
 </script>
 
 <template>
@@ -150,7 +162,7 @@ onUnload(() => clearInterval(timer))
         {{ saving ? '保存中…' : '保存' }}
       </button>
       <button class="act" @click="copyLink">
-        复制链接
+        复制
       </button>
     </div>
 
@@ -161,6 +173,11 @@ onUnload(() => clearInterval(timer))
       没找到这个约。请让发起人重新发链接。
     </p>
     <div v-else class="body">
+      <p class="status">
+        已填：{{ people.length ? people.map(p => p.name).join('、') : '还没有人' }}
+        ·
+        {{ best }}
+      </p>
       <TimeGrid
         :days="days"
         :times="times"
@@ -169,45 +186,50 @@ onUnload(() => clearInterval(timer))
         :max-count="maxCount"
         @paint="paint"
       />
-      <p class="note">
-        已填：{{ people.length ? people.map(p => p.name).join('、') : '还没有人' }}
-      </p>
-      <p class="note">
-        重叠：{{ best }}
-      </p>
     </div>
   </div>
 </template>
 
 <style scoped>
 .event {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
   text-align: left;
+  overflow: hidden;
 }
 .brand {
   margin: 0;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
+  line-height: 1.3;
+  flex-shrink: 0;
 }
 .lead {
-  margin: 8px 0 12px;
-  font-size: 14px;
+  margin: 4px 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
   opacity: 0.75;
+  flex-shrink: 0;
 }
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 6px;
   align-items: center;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
+  flex-shrink: 0;
   position: relative;
   z-index: 1;
 }
 .name {
-  flex: 1 1 140px;
+  flex: 1 1 auto;
   min-width: 0;
-  min-height: 44px;
+  min-height: 40px;
   box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 8px 10px;
   font-size: 16px;
   color: inherit;
   background: transparent;
@@ -220,25 +242,32 @@ onUnload(() => clearInterval(timer))
 }
 .act {
   flex: 0 0 auto;
-  min-height: 44px;
-  padding: 10px 14px;
+  min-height: 40px;
+  padding: 8px 10px;
   font-size: 14px;
   color: #fff;
   background: #0d9488;
   border: 0;
   border-radius: 6px;
+  white-space: nowrap;
 }
 .act:disabled {
   opacity: 0.5;
 }
 .body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   position: relative;
   z-index: 0;
-  padding-bottom: 24px;
 }
+.status,
 .note {
-  margin: 12px 0 0;
-  font-size: 14px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
   opacity: 0.8;
+  flex-shrink: 0;
 }
 </style>

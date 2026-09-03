@@ -2,12 +2,32 @@ page {
   box-sizing: border-box;
 }
 
+html, body {
+  overscroll-behavior: none;
+}
+
+uni-page-body {
+  height: 100%;
+}
+
 .app {
-  min-height: 100vh;
+  min-height: 100%;
   color: #000000;
   background: #ffffff;
 }
 .dark {
   color: #ffffff;
   background: #121212;
+}
+
+html.yue-lock,
+html.yue-lock body,
+html.yue-lock #app,
+html.yue-lock uni-app,
+html.yue-lock uni-page,
+html.yue-lock uni-page-wrapper,
+html.yue-lock uni-page-body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
